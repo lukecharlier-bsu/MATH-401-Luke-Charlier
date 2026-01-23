@@ -38,7 +38,7 @@ def two_random_conference_games(df, schedule, pairs, seed=1):
     rng = np.random.default_rng(seed)
 
     division_teams = df.groupby("Division")["Team"].apply(list).to_dict()
-    print(division_teams)
+    #print(division_teams)
     (A, B) = pairs[0] # The first pair that was selected
     (C, D) = pairs[1] # The second pair that was selected
 

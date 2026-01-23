@@ -5,6 +5,7 @@ from random_fpi import make_random_fpi
 pd.set_option("display.max_rows", None)
 pd.set_option("display.max_columns", None)
 pd.set_option("display.width", None)
+
 def main():
     df = pd.read_csv("FPI-1-11-26.csv")
 
