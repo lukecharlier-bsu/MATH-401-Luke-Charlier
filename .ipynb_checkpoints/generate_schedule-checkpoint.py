@@ -2,9 +2,18 @@ import numpy as np
 import pandas as pd
 from itertools import combinations
 
+# Name: add_game
+# Input Variables: schedule (array), home team (string), away team (string), divisional (boolean), conference (boolean)
+# Purpose: Allows customization to appending the schedule. For instance, flagging games as divisional matchups
+# Example: add_game(schedule, a,b,divisional = True, conference = True)
 def add_game(schedule, home, away, divisional=False, conference = False):
     schedule.append({"Home": home, "Away": away, "Divisional": divisional, "Conference": conference})
 
+# Name: build_divisional_schedule
+# Input Variables: division_teams (dict)
+# Output Variables: schedule (array with home team, away team, divisional flag, conference flag)
+# Purpose: Generates divisional matchups for all 8 divisions. Each team plays the 3 other teams in their conference 2 times. One away, one home
+# Example: print(build_divisional_schedule({"NFC North": division_teams["NFC North"]}))
 def build_divisional_schedule(division_teams):
     schedule = [] # This will store all games as (Home, Away)
 
@@ -15,10 +24,11 @@ def build_divisional_schedule(division_teams):
             add_game(schedule, b,a,divisional = True, conference = True) # b home
     return schedule
 
-#Example
-#print(build_divisional_schedule({"NFC North": division_teams["NFC North"]}))
-
-# Pairing up divisions for schedule 
+# Name: pair_up
+# Input Variables: divs (list of strings), seed (int)
+# Output Variables: pairs (array with division pairs)
+# Purpose: Pairs up all inputed divisions together for cross-divisional matchups
+# Example: print(pair_up(afc_divs,1)) | print(pair_up(nfc_divs,5))
 def pair_up(divs,seed):
     rng = np.random.default_rng(seed) #Random number generator
     divs = list(divs) #List out all divisions
@@ -29,10 +39,12 @@ def pair_up(divs,seed):
         pair = (divs[i], divs[i+1]) # Pair current division with the next one
         pairs.append(pair)
     return pairs
-    
-#Example
-#print(pair_up(afc_divs,1))
-#print(pair_up(nfc_divs,5))
+
+# Name: two_random_conference_games
+# Input Variables: df (dataframe of NFL teams), schedule (array), pairs (array with division pairs), seed (int)
+# Output Variables: schedule (array with home team, away team, divisional flag, conference flag)
+# Purpose: Generates 2 matchups per team from inner-conference opponents not in their own division or the division they paired up with
+# Example: schedule = two_random_conference_games(df, schedule, nfc_pairs, seed=1)
 
 def two_random_conference_games(df, schedule, pairs, seed=1):
     rng = np.random.default_rng(seed)
@@ -68,6 +80,12 @@ def two_random_conference_games(df, schedule, pairs, seed=1):
 
 
     return schedule
+
+# Name: one_random_other_conference
+# Input Variables: df (dataframe of NFL teams), schedule (array), pairs (array with division pairs), seed (int)
+# Output Variables: schedule (array with home team, away team, divisional flag, conference flag)
+# Purpose: Generates 1 matchup per team from outer-conference opponents not in the division they paired up with
+# Example: schedule = one_random_other_conference(df, schedule, cross_pairs, seed=1)
 
 def one_random_other_conference(df, schedule, pairs, seed=1):
     rng = np.random.default_rng(seed)
@@ -141,7 +159,12 @@ def one_random_other_conference(df, schedule, pairs, seed=1):
             add_game(schedule, h, g, divisional=False, conference=False)
 
     return schedule
-    
+
+# Name: division_vs_division
+# Input Variables: df (dataframe of NFL teams), schedule (array), d1 (division 1), d2 (division 2), seed (int)
+# Output Variables: schedule (array with home team, away team, divisional flag, conference flag)
+# Purpose: Generates 2 home and 2 away matchups for all teams between 2 divisions
+# Example: print(division_vs_division(build_divisional_schedule({"NFC North": division_teams["NFC North"]})))
 def division_vs_division(df, schedule, d1, d2,seed):
     rng = np.random.default_rng(seed)  # Random number
 
@@ -171,11 +194,15 @@ def division_vs_division(df, schedule, d1, d2,seed):
                 add_game(schedule, a, b, divisional=False, conference=conference)  # Team a is home vs team b
             else:
                 add_game(schedule, b, a, divisional=False, conference=conference)  # Team b is home vs team a
+    return schedule
 
-
-# Example
-# print(division_vs_division(build_divisional_schedule({"NFC North": division_teams["NFC North"]})))
-
+# Name: generate_schedule
+# Input Variables: df (dataframe of NFL teams), seed (int)
+# Output Variables: schedule_df (data frame with home team, away team, divisional flag, conference flag)
+# Purpose: Generates an entire 17 game NFL season for all 32 NFL teams
+# Example: #schedule_df = generate_schedule(df, seed=4)
+#print(schedule_df[(schedule_df["Home"] == "New England Patriots") |
+                  #(schedule_df["Away"] == "New England Patriots")])
 def generate_schedule(df: pd.DataFrame, seed: int = 1):
 
     rng = np.random.default_rng(seed)
@@ -217,8 +244,3 @@ def generate_schedule(df: pd.DataFrame, seed: int = 1):
 
     return schedule_df
 
-#Example:
-#schedule_df = generate_schedule(df, seed=4)
-
-#print(schedule_df[(schedule_df["Home"] == "New England Patriots") |
-                  #(schedule_df["Away"] == "New England Patriots")])

@@ -2,6 +2,11 @@ import numpy as np
 import pandas as pd
 from sim_game import simulate_game
 
+# Name: simulate_season
+# Input Variables: df (dataframe), schedule_df (dataframe), sigma (int), home_field (int), seed (int)
+# Output Variables: results_df (dataframe containing the winner and loser of all games), standings_df (dataframe showing NFL standings)
+# Purpose: Simulates an entire 17 game 32 team NFL season 
+# Example: 
 def simulate_season(df, schedule_df, sigma=9, home_field=2, seed=1):
     rng = np.random.default_rng(seed)
     n_games = 17
