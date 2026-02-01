@@ -13,7 +13,8 @@ def simulate_season(df, schedule_df, sigma=9, home_field=2, seed=1):
 
     teams = df["Team"].tolist() # All 32 NFL teams
     power = dict(zip(df["Team"], df["FPI"])) # Pairs teams with their assigned rating
-
+    division = dict(zip(df["Team"], df["Division"])) 
+    
     # -Simulate all games -----------------------------------
     results = []  # Will store every game's results
 
@@ -42,7 +43,7 @@ def simulate_season(df, schedule_df, sigma=9, home_field=2, seed=1):
     wins = {}
     div_wins = {}
     conf_wins = {}
-
+    
 
     # Start every team out with 0 wins
     for team in teams:
@@ -66,7 +67,7 @@ def simulate_season(df, schedule_df, sigma=9, home_field=2, seed=1):
 
     for team in teams:
         standings.append({"Team": team,"Wins": wins[team], "Losses": n_games - wins[team], "FPI": power[team],"Div_Wins": div_wins[team],
-                         "Conf_Wins": conf_wins[team],})
+                         "Conf_Wins": conf_wins[team],"Division": division[team], })
 
     standings_df = pd.DataFrame(standings)
 
@@ -79,6 +80,7 @@ def simulate_season(df, schedule_df, sigma=9, home_field=2, seed=1):
     fpi_ranks["FPI_Rank"] = fpi_ranks.index + 1
 
     standings_df = standings_df.merge(fpi_ranks[["Team", "FPI_Rank"]],on="Team",how="left")
+    standings_df["Conference"] = standings_df["Division"].str.split().str[0]
 
     standings_df["FPI vs True difference"] = (standings_df["FPI_Rank"] - standings_df["Final_Rank"])
     standings_df.drop(columns=["Final_Rank", "FPI_Rank"], inplace=True)
