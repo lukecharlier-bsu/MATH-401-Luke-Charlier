@@ -62,30 +62,31 @@ def conference_record(standings_df,t1,t2):
 # Example: common_games(results_df, "49ers", "Seahawks")
 def common_games(results_df, t1, t2):
     # Opponents each team played
+    # set() function allows us to get a clean intersection
     t1_opponents = set(results_df.loc[results_df["Home"] == t1, "Away"]) | set(results_df.loc[results_df["Away"] == t1, "Home"])
     t2_opponents = set(results_df.loc[results_df["Home"] == t2, "Away"]) | set(results_df.loc[results_df["Away"] == t2, "Home"])
 
-    # Common opponents (remove each other so head-to-head doesn't sneak in)
+    # Common opponents (remove each other so head to head doesn't sneak in)
     common = (t1_opponents & t2_opponents) - {t1, t2}
-
+    
     # NFL rule: must have at least 4 common opponents
     if len(common) < 4:
         print("Not enough opponents!", common)
         return None
         
-    t1_games = results_df[
-        ((results_df["Home"] == t1) & (results_df["Away"].isin(common))) |
-        ((results_df["Away"] == t1) & (results_df["Home"].isin(common)))
-    ]
-
-    t2_games = results_df[
-        ((results_df["Home"] == t2) & (results_df["Away"].isin(common))) |
-        ((results_df["Away"] == t2) & (results_df["Home"].isin(common)))
-    ]
+    # Take note the # of games played against these opponents for t1
+    # This is needed for win percentage, as common opponents can have a diff number for t1 and t2
+    t1_games = results_df[((results_df["Home"] == t1) & (results_df["Away"].isin(common))) |
+        ((results_df["Away"] == t1) & (results_df["Home"].isin(common)))]
+    # Take note the # of games played against these opponents for t2
+    t2_games = results_df[((results_df["Home"] == t2) & (results_df["Away"].isin(common))) |
+        ((results_df["Away"] == t2) & (results_df["Home"].isin(common)))]
+    
     # Count wins vs common opponents using Winner/Loser
     t1_wins = ((results_df["Winner"] == t1) & (results_df["Loser"].isin(common))).sum()
     t2_wins = ((results_df["Winner"] == t2) & (results_df["Loser"].isin(common))).sum()
 
+    # We need to use win percentage 
     t1_pct = t1_wins / len(t1_games)
     t2_pct = t2_wins / len(t2_games)
 
@@ -101,14 +102,29 @@ def common_games(results_df, t1, t2):
 #def strength_of_schedule
 #what is it? the average win total of the teams you played
 
+#def combined_ranking_conference
+#what is it? points for ranking + points against ranking amongst conference (1-16 for both)
+
+#def combined_ranking_overall
+#what is it? points for ranking + points against ranking amongst conference (1-32 for both)
+
+#def net_points_common
+#what is it? total points for vs total points against in common games
+
+#def net_points_overall
+#what is it? total points for vs total points against in all games
+
+#def net_tds
+#what is it? total TDs for vs total TDs against in all games
+
 #def 
 # Name: tie_break
 # Input Variables: results_df (dataframe), standings_df (dataframe), t1 (string), t2 (string), mode (string)
 # Output Variables: winning team name (string)
-# Purpose: Applies NFL-style tiebreakers to determine which team ranks higher
+# Purpose: Applies NFL-style tiebreakers to determine which team ranks higher, with 2 different modes for the type of tiebreaker
 # Example: tie_break(results_df, standings_df, "Ravens", "Bengals", mode="wildcard")
 def tie_break(results_df, standings_df, t1, t2, mode="division"):
-    rng = np.random.default_rng(10)
+    rng = np.random.default_rng(10) # need to change this to seed
     # 1) head-to-head
     w = head_to_head(results_df, t1, t2)
     if w is not None:
@@ -116,6 +132,7 @@ def tie_break(results_df, standings_df, t1, t2, mode="division"):
         return w
 
     # 2) division record (division winner ties only)
+    # division tiebreakers use division record and prioritize common games over conference record
     if mode == "division":
         w = division_record(standings_df, t1, t2)
         if w is not None:
@@ -130,7 +147,9 @@ def tie_break(results_df, standings_df, t1, t2, mode="division"):
         if w is not None:
             print(w, "won a tiebreaker by conference_record")
             return w
-            
+
+    # 3) wildcard    
+    #wildcard tiebreaker prioritizes conference record over conference games
     if mode == "wildcard":
         w = conference_record(standings_df, t1, t2)
         if w is not None:
@@ -154,16 +173,18 @@ def division_winners(standings_df,results_df):
 
     df = standings_df.copy()
     winners_rows = []
-    for div, grp in df.groupby("Division"):
-        max_wins = grp["Wins"].max()
-        tied = grp[grp["Wins"] == max_wins]["Team"].tolist()
 
-        if len(tied) == 1:
+    for div, grp in df.groupby("Division"): # for loop goes division by division 
+        max_wins = grp["Wins"].max() #takes the top team in the divison we're looking at by wins
+        tied = grp[grp["Wins"] == max_wins]["Team"].tolist() #spits out a list of teams that are tied
+
+        if len(tied) == 1: # if the list is only 1, then no one is tied via wins
             winner = tied[0]
         else:
-            team1 = tied[0]
-            for team2 in tied[1:]:
-                team1 = tie_break(results_df, df, team1, team2, mode="division")
+            team1 = tied[0] # Assign the first team as the "king of the hill"
+            for team2 in tied[1:]: # for every team that has a tied record
+                team1 = tie_break(results_df, df, team1, team2, mode="division") # break the tie between the "king" and the iterated team.
+                #whoever wins is the "new king".
             winner = team1
 
         winners_rows.append(grp[grp["Team"] == winner].iloc[0].to_dict())
@@ -171,8 +192,9 @@ def division_winners(standings_df,results_df):
     div_winners = pd.DataFrame(winners_rows)
 
     # seed 1-4 per conference, simply sort by wins
+    # I need to replace this with a loop similar to the one in wild_card, that sorts the division winners with a wildcard tiebreaker
     div_winners = div_winners.sort_values(by=["Conference", "Wins", "Team"],ascending=[True, False, True]).reset_index(drop=True)
-
+    
     div_winners["Seed"] = div_winners.groupby("Conference").cumcount() + 1
 
     return div_winners[["Conference", "Seed", "Team", "Division", "Wins", "Losses"]].reset_index(drop=True)

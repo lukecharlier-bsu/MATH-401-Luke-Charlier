@@ -7,3 +7,7 @@ def simulate_game(power1: float, power2: float, sigma: float, home_field: float,
 
 #Example
 #simulate_game(50,49,9,2,rng = np.random.default_rng(1))
+
+#Inspo for total games
+#https://perthirtysix.com/nfl/scorigami
+#https://jamescurley.blog/posts/2021-10-03-nfl-scorelines/
