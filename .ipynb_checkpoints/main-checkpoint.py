@@ -11,7 +11,7 @@ def main():
 
     df = pd.read_csv("FPI-1-11-26.csv")
     
-    for seed in range(1, 10):
+    for seed in range(1, 45):
         print("\n" + "------------------------------------------------------")
         print(f"SEASON SIMULATION (seed = {seed})")
         print("------------------------------------------------------")

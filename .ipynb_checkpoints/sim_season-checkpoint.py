@@ -2,12 +2,15 @@ import numpy as np
 import pandas as pd
 from sim_game import simulate_game
 
-# Name: simulate_season
-# Input Variables: df (dataframe), schedule_df (dataframe), sigma (int), home_field (int), seed (int)
-# Output Variables: results_df (dataframe containing the winner and loser of all games), standings_df (dataframe showing NFL standings)
-# Purpose: Simulates an entire 17 game 32 team NFL season 
-# Example: 
+
 def simulate_season(df, schedule_df, sigma=9, home_field=2, seed=1):
+    """
+    # Name: simulate_season
+    # Input Variables: df (dataframe), schedule_df (dataframe), sigma (int), home_field (int), seed (int)
+    # Output Variables: results_df (dataframe containing the winner and loser of all games), standings_df (dataframe showing NFL standings)
+    # Purpose: Simulates an entire 17 game 32 team NFL season 
+    # Example: 
+    """
     rng = np.random.default_rng(seed)
     n_games = 17
 
@@ -35,7 +38,7 @@ def simulate_season(df, schedule_df, sigma=9, home_field=2, seed=1):
             winner = away
             loser = home
 
-        results.append({"Home": home,"Away": away,"Winner": winner,"Loser": loser, "Divisional": divisional, "Conference": conference})
+        results.append({"Home": home,"Away": away,"Winner": winner,"Loser": loser, "Divisional": divisional, "Conference": conference, "Margin": margin,})
 
     results_df = pd.DataFrame(results)
     
@@ -43,6 +46,7 @@ def simulate_season(df, schedule_df, sigma=9, home_field=2, seed=1):
     wins = {}
     div_wins = {}
     conf_wins = {}
+    total_margin = {}
     
 
     # Start every team out with 0 wins
@@ -50,9 +54,12 @@ def simulate_season(df, schedule_df, sigma=9, home_field=2, seed=1):
         wins[team] = 0
         div_wins[team] = 0
         conf_wins[team] = 0
+        total_margin[team] = 0
         
     # Count wins from results
     for _, r in results_df.iterrows():
+        home = r["Home"]
+        away = r["Away"]
         winner = r["Winner"]
         wins[winner] += 1
     
@@ -61,13 +68,17 @@ def simulate_season(df, schedule_df, sigma=9, home_field=2, seed=1):
     
         if r["Conference"]:
             conf_wins[winner] += 1
+
+        total_margin[home] += r["Margin"] #add margin to home teams total
+        total_margin[away] -= r["Margin"] #subtract margin from away teams total
+        #let's say home team loses by 5, then away team's margin will be - -5, which would add 5 to it.
     
     # Standings ---------------------------------------------
     standings = []
 
     for team in teams:
         standings.append({"Team": team,"Wins": wins[team], "Losses": n_games - wins[team], "FPI": power[team],"Div_Wins": div_wins[team],
-                         "Conf_Wins": conf_wins[team],"Division": division[team], })
+                         "Conf_Wins": conf_wins[team],"Division": division[team], "Total_Margin": total_margin[team],})
 
     standings_df = pd.DataFrame(standings)
 
