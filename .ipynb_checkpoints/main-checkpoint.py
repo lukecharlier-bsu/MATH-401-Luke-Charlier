@@ -15,9 +15,9 @@ def main():
     total_tb_counts = Counter()
     total_fpi_counts = Counter()
     for seed in range(2002, 2026):
-        print("\n" + "------------------------------------------------------")
-        print(f"SEASON SIMULATION (seed = {seed})")
-        print("------------------------------------------------------")
+        #print("\n" + "------------------------------------------------------")
+        #print(f"SEASON SIMULATION (seed = {seed})")
+        #print("------------------------------------------------------")
     
         df_seeded = make_random_fpi(df,mean=-0.016,std=2.5,seed=seed)
     
@@ -28,7 +28,7 @@ def main():
         #print(standings_df)
 
         field, tiebreakers, fpi_winners = playoff_field(standings_df, results_df)
-        print(field)
+        #print(field)
         season_tb_counts = Counter(tiebreakers)
         season_fpi_counts = Counter(fpi_winners)
         total_fpi_counts.update(season_fpi_counts)
@@ -43,7 +43,7 @@ def main():
         field, tbs, fpi_winners = playoff_field(standings_df, results_df)
         total_real.update(tbs)
         #print(year, "Playoff field")
-        print(field)
+        #print(field)
         #print(standings_df)
         
     print(total_real)

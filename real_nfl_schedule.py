@@ -108,3 +108,33 @@ def build_real_season_dfs(year: int):
     standings_df = standings.sort_values(["Wins", "Total_Margin"], ascending=[False, False]).reset_index(drop=True)
     standings_df = make_random_fpi(standings_df, seed=year)
     return results_df, standings_df
+
+def real_schedule_df(year:int):
+     # Load in the schedules
+    sch = nfl.load_schedules([year]).to_pandas()
+
+    # Keep all regular season games
+    sch = sch[(sch["season"] == year) & (sch["game_type"] == "REG")].copy()
+
+    # Load in NFL Team Data, need to convert to pandas cause the nflreadpy is weird
+    teams = nfl.load_teams().to_pandas()
+
+    # Connect the NFL Team Data to the abbreviations in the schedule section
+    team_cols = ["team_abbr", "team_name", "team_conf", "team_division"]
+
+    # Do a left join for all home teams in the results
+    sch = sch.merge(teams[team_cols],left_on="home_team",right_on="team_abbr").rename(columns={ "team_name": "Home",
+        "team_conf": "Home_Conf", "team_division": "Home_Div"
+        }).drop(columns=["team_abbr"])
+
+    # Do a left join for all the away teams in the results
+    sch = sch.merge(teams[team_cols],left_on="away_team",right_on="team_abbr").rename(columns={"team_name": "Away",
+        "team_conf": "Away_Conf","team_division": "Away_Div"
+        }).drop(columns=["team_abbr"])
+
+    # Build schedule_df in your format
+    schedule_df = pd.DataFrame({"Home": sch["Home"], "Away": sch["Away"],
+        "Divisional": sch["Home_Div"] == sch["Away_Div"], "Conference": sch["Home_Conf"] == sch["Away_Conf"],})
+
+    return schedule_df.reset_index(drop=True)
+

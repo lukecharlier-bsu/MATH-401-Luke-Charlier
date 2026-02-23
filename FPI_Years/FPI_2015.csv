@@ -1,33 +1,33 @@
-Team,FPI
-Seattle Seahawks,8.8
-Arizona Cardinals,8.3
-Carolina Panthers,7.9
-New England Patriots,7.2
-Pittsburgh Steelers,7.1
-Kansas City Chiefs,6.8
-Denver Broncos,5.9
-Cincinnati Bengals,4.1
-Green Bay Packers,3.6
-New York Jets,3.6
-Minnesota Vikings,2.8
-Buffalo Bills,1.7
-Houston Texans,-0.2
-Indianapolis Colts,-1.4
-Philadelphia Eagles,-1.6
-Detroit Lions,-2.0
-Atlanta Falcons,-2.1
-New York Giants,-2.1
-Oakland Raiders,-2.2
-Baltimore Ravens,-2.6
-Miami Dolphins,-2.6
-Chicago Bears,-2.6
-San Diego Chargers,-2.6
-Washington Redskins,-2.8
-Tampa Bay Buccaneers,-3.2
-St. Louis Rams,-3.8
-New Orleans Saints,-3.9
-Dallas Cowboys,-4.2
-Jacksonville Jaguars,-4.6
-Cleveland Browns,-6.7
-Tennessee Titans,-8.2
-San Francisco 49ers,-8.3
+Team,FPI,Division
+Arizona Cardinals,8.3,NFC West
+Atlanta Falcons,-2.1,NFC South
+Baltimore Ravens,-2.6,AFC North
+Buffalo Bills,1.7,AFC East
+Carolina Panthers,7.9,NFC South
+Chicago Bears,-2.6,NFC North
+Cincinnati Bengals,4.1,AFC North
+Cleveland Browns,-6.7,AFC North
+Dallas Cowboys,-4.2,NFC East
+Denver Broncos,5.9,AFC West
+Detroit Lions,-2.0,NFC North
+Green Bay Packers,3.6,NFC North
+Houston Texans,-0.2,AFC South
+Indianapolis Colts,-1.4,AFC South
+Jacksonville Jaguars,-4.6,AFC South
+Kansas City Chiefs,6.8,AFC West
+Las Vegas Raiders,-2.2,AFC West
+Los Angeles Chargers,-2.6,AFC West
+Miami Dolphins,-2.6,AFC East
+Minnesota Vikings,2.8,NFC North
+New England Patriots,7.2,AFC East
+New Orleans Saints,-3.9,NFC South
+New York Giants,-2.1,NFC East
+New York Jets,3.6,AFC East
+Philadelphia Eagles,-1.6,NFC East
+Pittsburgh Steelers,7.1,AFC North
+San Francisco 49ers,-8.3,NFC West
+Seattle Seahawks,8.8,NFC West
+Tampa Bay Buccaneers,-3.2,NFC South
+Tennessee Titans,-8.2,AFC South
+Washington Commanders,-2.8,NFC East
+Los Angeles Rams,-3.8,NFC West
