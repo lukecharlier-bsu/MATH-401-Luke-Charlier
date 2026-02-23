@@ -13,6 +13,7 @@ def main():
 
     df = pd.read_csv("FPI-1-11-26.csv")
     total_tb_counts = Counter()
+    total_fpi_counts = Counter()
     for seed in range(2002, 2026):
         print("\n" + "------------------------------------------------------")
         print(f"SEASON SIMULATION (seed = {seed})")
@@ -26,17 +27,20 @@ def main():
         #print("\nSTANDINGS:")
         #print(standings_df)
 
-        field, tiebreakers = playoff_field(standings_df, results_df)
+        field, tiebreakers, fpi_winners = playoff_field(standings_df, results_df)
         print(field)
         season_tb_counts = Counter(tiebreakers)
+        season_fpi_counts = Counter(fpi_winners)
+        total_fpi_counts.update(season_fpi_counts)
         total_tb_counts.update(season_tb_counts)   # or: total_tb_counts += season_tb_counts
-
+    print(total_tb_counts)
+    print(total_fpi_counts)
     total_real = Counter()
-
+    
         # Loop through the years and count the # of tiebreakers
     for year in range(2002, 2026):
         results_df, standings_df = build_real_season_dfs(year)
-        field, tbs = playoff_field(standings_df, results_df)
+        field, tbs, fpi_winners = playoff_field(standings_df, results_df)
         total_real.update(tbs)
         #print(year, "Playoff field")
         print(field)
@@ -44,7 +48,7 @@ def main():
         
     print(total_real)
     #print(standings_df)
-    print(total_tb_counts)
+    
     #print(results_df)
 if __name__ == "__main__":
     main()

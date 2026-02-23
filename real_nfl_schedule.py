@@ -2,6 +2,7 @@ import pandas as pd
 import nflreadpy as nfl
 from collections import Counter
 from playoffs import playoff_field
+from random_fpi import make_random_fpi
 
 def build_real_season_dfs(year: int):
     """
@@ -105,4 +106,5 @@ def build_real_season_dfs(year: int):
  
     # Sort the standings by wins and total margin
     standings_df = standings.sort_values(["Wins", "Total_Margin"], ascending=[False, False]).reset_index(drop=True)
+    standings_df = make_random_fpi(standings_df, seed=year)
     return results_df, standings_df
