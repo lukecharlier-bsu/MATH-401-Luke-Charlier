@@ -2,6 +2,38 @@
 import pandas as pd
 import numpy as np
 
+def nfl_win_pct(standings_df, t1, mode="normal"):
+    """
+    # Input Variables: standings_df (dataframe), t1 (string, ie Football team), mode (string: normal, conference, division, common)
+    # Output Variables: win percentage (float)
+    # Purpose: Calculates a team’s win percentage under different tiebreaking contexts
+    # Example: nfl_win_pct(standings_df, "Packers", mode="conference")
+    """
+    row = standings_df.loc[standings_df["Team"] == t1].iloc[0]
+
+    if mode == "conference":
+        wins = row["Conf_Wins"]
+        losses = row["Conf_Losses"]
+        ties = row.get("Conf_Ties", 0)
+
+    elif mode == "division":
+        wins = row["Div_Wins"]
+        losses = row["Div_Losses"]
+        ties = row.get("Div_Ties", 0)
+
+    else:
+        # default = overall record
+        wins = row["Wins"]
+        losses = row["Losses"]
+        ties = row.get("Ties", 0)
+
+    games = wins + losses + ties
+
+    if games == 0:
+        return 0
+
+    return (wins + 0.5 * ties) / games
+
 # Name: head_to_head
 def head_to_head(results_df,t1,t2):
     """
@@ -35,9 +67,10 @@ def division_record(standings_df,t1,t2):
     # Purpose: Breaks ties using divisional wins
     # Example: division_record(standings_df, "Packers", "Lions")
     """
-    w1 = int(standings_df.loc[standings_df["Team"] == t1, "Div_Wins"].iloc[0])
-    w2 = int(standings_df.loc[standings_df["Team"] == t2, "Div_Wins"].iloc[0])
-
+    #w1 = int(standings_df.loc[standings_df["Team"] == t1, "Div_Wins"].iloc[0])
+    #w2 = int(standings_df.loc[standings_df["Team"] == t2, "Div_Wins"].iloc[0])
+    w1 = nfl_win_pct(standings_df,t1,mode = "division")
+    w2 = nfl_win_pct(standings_df,t2,mode = "division")
     if w1 > w2:
         return t1
     if w2 > w1:
@@ -52,8 +85,10 @@ def conference_record(standings_df,t1,t2):
     # Purpose: Breaks ties using conference wins
     # Example: conference_record(standings_df, "Eagles", "Cowboys")
     """
-    w1 = int(standings_df.loc[standings_df["Team"] == t1, "Conf_Wins"].iloc[0])
-    w2 = int(standings_df.loc[standings_df["Team"] == t2, "Conf_Wins"].iloc[0])
+    #w1 = int(standings_df.loc[standings_df["Team"] == t1, "Conf_Wins"].iloc[0])
+    #w2 = int(standings_df.loc[standings_df["Team"] == t2, "Conf_Wins"].iloc[0])
+    w1 = nfl_win_pct(standings_df,t1,mode = "conference")
+    w2 = nfl_win_pct(standings_df,t2,mode = "conference")
 
     if w1 > w2:
         return t1
@@ -166,6 +201,13 @@ def tie_break(results_df, standings_df, t1, t2, mode="division"):
     """
     #print("TIEBREAKER CALLED")
     # 1) head-to-head
+    w1 = nfl_win_pct(standings_df,t1)
+    w2 = nfl_win_pct(standings_df,t2)
+    if w1 > w2:
+        return t1, "win percentage diff"
+    if w2 > w1:
+        return t2, "win percentage diff"
+    
     w = head_to_head(results_df, t1, t2)
     if w is not None:
         #print(w, "won a tiebreaker by head to head") #I added all these print statements to see what tie break method is going through
@@ -176,36 +218,36 @@ def tie_break(results_df, standings_df, t1, t2, mode="division"):
     if mode == "division":
         w = division_record(standings_df, t1, t2)
         if w is not None:
-            #print(w, "won a tiebreaker by division_record")
+            print(w, "won a tiebreaker by division_record")
             return w, "division_record"
             # 4) common games (later)
         w = common_games(results_df, t1, t2)
         if w is not None:
-            #print(w, "won a tiebreaker by common_games")
+            print(w, "won a tiebreaker by common_games", t1,t2)
             return w, "common_games"
         w = conference_record(standings_df, t1, t2)
         if w is not None:
-            #print(w, "won a tiebreaker by conference_record")
+            print(w, "won a tiebreaker by conference_record")
             return w, "conference_record"
 
         w1 = strength_of_victory(results_df, standings_df, t1)
         w2 = strength_of_victory(results_df, standings_df, t2)
         
         if w1 > w2:
-            #print(t1, "won a tiebreaker by strength of victory")
+            print(t1, "won a tiebreaker by strength of victory")
             return t1, "strength_of_victory"
         elif w2 > w1:
-            #print(t2, "won a tiebreaker by strength of victory")
+            print(t2, "won a tiebreaker by strength of victory")
             return t2, "strength_of_victory"
 
         w1 = strength_of_schedule(results_df, standings_df, t1)
         w2 = strength_of_schedule(results_df, standings_df, t2)
         
         if w1 > w2:
-            #print(t1, "won a tiebreaker by strength of schedule")
+            print(t1, "won a tiebreaker by strength of schedule")
             return t1, "strength_of_schedule"
         elif w2 > w1:
-            #print(t2, "won a tiebreaker by strength of schedule")
+            print(t2, "won a tiebreaker by strength of schedule")
             return t2, "strength_of_schedule"
 
     # 3) wildcard    
@@ -213,31 +255,31 @@ def tie_break(results_df, standings_df, t1, t2, mode="division"):
     if mode == "wildcard":
         w = conference_record(standings_df, t1, t2)
         if w is not None:
-            #print(w, "won a tiebreaker by conference_record")
+            print(w, "won a tiebreaker by conference_record")
             return w, "conference_record"
         w = common_games(results_df, t1, t2)
         if w is not None:
-            #print(w, "won a tiebreaker by common_games")
+            print(w, "won a tiebreaker by common_games", t1,t2)
             return w, "common_games"
         
         w1 = strength_of_victory(results_df, standings_df, t1)
         w2 = strength_of_victory(results_df, standings_df, t2)
         
         if w1 > w2:
-            #print(t1, "won a tiebreaker by strength of victory")
+            print(t1, "won a tiebreaker by strength of victory")
             return t1, "strength_of_victory"
         elif w2 > w1:
-            #print(t2, "won a tiebreaker by strength of victory")
+            print(t2, "won a tiebreaker by strength of victory")
             return t2, "strength_of_victory"
 
         w1 = strength_of_schedule(results_df, standings_df, t1)
         w2 = strength_of_schedule(results_df, standings_df, t2)
         
         if w1 > w2:
-            #print(t1, "won a tiebreaker by strength of schedule")
+            print(t1, "won a tiebreaker by strength of schedule")
             return t1, "strength_of_schedule"
         elif w2 > w1:
-            #print(t2, "won a tiebreaker by strength of schedule")
+            print(t2, "won a tiebreaker by strength of schedule")
             return t2, "strength_of_schedule"
 
     if mode != "wildcard":
@@ -306,7 +348,7 @@ def division_winners(standings_df,results_df,tie_breakers):
     
     div_winners["Seed"] = div_winners.groupby("Conference").cumcount() + 1
 
-    return div_winners[["Conference", "Seed", "Team", "Division", "Wins", "Losses"]].reset_index(drop=True), tie_breakers
+    return div_winners[["Conference", "Seed", "Team", "Division", "Wins", "Losses", "Ties"]].reset_index(drop=True), tie_breakers
 
 # Name: wild_card
 def wild_card(standings_df, results_df, div,tie_breakers):
@@ -365,7 +407,7 @@ def wild_card(standings_df, results_df, div,tie_breakers):
     # Assign seeds 5–7 within each conference
     wildcards_df["Seed"] = wildcards_df.groupby("Conference").cumcount() + 5
 
-    return wildcards_df[["Conference", "Seed", "Team", "Division", "Wins", "Losses"]].reset_index(drop=True), tie_breakers
+    return wildcards_df[["Conference", "Seed", "Team", "Division", "Wins", "Losses", "Ties"]].reset_index(drop=True), tie_breakers
 
 # Name: playoff_field
 def playoff_field(standings_df,results_df):

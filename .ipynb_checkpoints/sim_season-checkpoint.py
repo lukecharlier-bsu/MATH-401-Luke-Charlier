@@ -41,11 +41,14 @@ def simulate_season(df, schedule_df, sigma=9, home_field=2, seed=1):
         results.append({"Home": home,"Away": away,"Winner": winner,"Loser": loser, "Divisional": divisional, "Conference": conference, "Margin": margin,})
 
     results_df = pd.DataFrame(results)
+    results_df["Tie"] = margin == 0
     
     # Count the wins ---------------------------------------
     wins = {}
     div_wins = {}
     conf_wins = {}
+    div_losses = {}
+    conf_losses = {}
     total_margin = {}
     
 
@@ -54,6 +57,8 @@ def simulate_season(df, schedule_df, sigma=9, home_field=2, seed=1):
         wins[team] = 0
         div_wins[team] = 0
         conf_wins[team] = 0
+        div_losses[team] = 0
+        conf_losses[team] = 0
         total_margin[team] = 0
         
     # Count wins from results
@@ -61,13 +66,16 @@ def simulate_season(df, schedule_df, sigma=9, home_field=2, seed=1):
         home = r["Home"]
         away = r["Away"]
         winner = r["Winner"]
+        loser = r["Loser"]
         wins[winner] += 1
     
         if r["Divisional"]:
             div_wins[winner] += 1
+            div_losses[loser] += 1
     
         if r["Conference"]:
             conf_wins[winner] += 1
+            conf_losses[loser] += 1
 
         total_margin[home] += r["Margin"] #add margin to home teams total
         total_margin[away] -= r["Margin"] #subtract margin from away teams total
@@ -78,10 +86,15 @@ def simulate_season(df, schedule_df, sigma=9, home_field=2, seed=1):
 
     for team in teams:
         standings.append({"Team": team,"Wins": wins[team], "Losses": n_games - wins[team], "FPI": power[team],"Div_Wins": div_wins[team],
-                         "Conf_Wins": conf_wins[team],"Division": division[team], "Total_Margin": total_margin[team],})
+                         "Conf_Wins": conf_wins[team],"Division": division[team], "Total_Margin": total_margin[team], 
+                          "Div_Losses": div_losses[team],
+                         "Conf_Losses": conf_losses[team],
+                         })
 
     standings_df = pd.DataFrame(standings)
-
+    standings_df["Ties"] = 0
+    standings_df["Div Ties"] = 0
+    standings_df["Conf_Ties"] = 0
     # Sort standings by wins (descending) -------------------
     standings_df = standings_df.sort_values(by="Wins", ascending=False).reset_index(drop=True)
     
