@@ -205,6 +205,12 @@ def tie_break(results_df, standings_df, t1, t2, mode="division"):
     # Purpose: Applies NFL-style tiebreakers to determine which team ranks higher, with 2 different modes for the type of tiebreaker
     # Example: tie_break(results_df, standings_df, "Ravens", "Bengals", mode="wildcard")
     """
+    if mode != "wildcard":
+        if mode != "division":
+            if mode != "custom":
+                print("Must input 'wildcard' or 'division' for mode.")
+                return None
+
     fpi_1 = standings_df.loc[standings_df["Team"] == t1, "FPI"].iloc[0]
     fpi_2 = standings_df.loc[standings_df["Team"] == t2, "FPI"].iloc[0]
     if fpi_1 > fpi_2:
@@ -220,11 +226,13 @@ def tie_break(results_df, standings_df, t1, t2, mode="division"):
         return t1, "win percentage diff", fpi_result(t1,higher_fpi)
     if w2 > w1:
         return t2, "win percentage diff", fpi_result(t2,higher_fpi)
+
     # 1) head-to-head
     w = head_to_head(results_df, t1, t2)
     if w is not None:
-        #print(w, "won a tiebreaker by head to head") #I added all these print statements to see what tie break method is going through
-        return w, "head to head", fpi_result(w,higher_fpi)
+        if mode != "custom":
+            #print(w, "won a tiebreaker by head to head") #I added all these print statements to see what tie break method is going through
+            return w, "head to head", fpi_result(w,higher_fpi)
 
     # 2) division record (division winner ties only)
     # division tiebreakers use division record and prioritize common games over conference record
@@ -294,11 +302,17 @@ def tie_break(results_df, standings_df, t1, t2, mode="division"):
         elif w2 > w1:
             #print(t2, "won a tiebreaker by strength of schedule")
             return t2, "strength_of_schedule", fpi_result(t2,higher_fpi)
+    
+    if mode == "custom":
+        
+        tm1 = standings_df.loc[standings_df["Team"] == t1, "Total_Margin"].iloc[0]
+        tm2 = standings_df.loc[standings_df["Team"] == t2, "Total_Margin"].iloc[0]
+    
+        if tm1 > tm2:
+            return t1, "total_margin", fpi_result(t1, higher_fpi)
+        elif tm2 > tm1:
+            return t2, "total_margin", fpi_result(t2, higher_fpi)
 
-    if mode != "wildcard":
-        if mode != "division":
-            #print("Must input 'wildcard' or 'division' for mode.")
-            return None
             
     rng = np.random.default_rng()
     print("Coin flip! _________-----------_____________------------_______________--------", [t1, t2])
@@ -306,7 +320,7 @@ def tie_break(results_df, standings_df, t1, t2, mode="division"):
     return winner, "Coin Flip!", fpi_result(winner, higher_fpi)
 
 # Name: division_winners
-def division_winners(standings_df,results_df,tie_breakers,fpi_winners):
+def division_winners(standings_df,results_df,tie_breakers,fpi_winners,mode = "default"):
     """
     # Input Variables: standings_df (dataframe), results_df (dataframe)
     # Output Variables: div_winners (dataframe) 
@@ -314,6 +328,11 @@ def division_winners(standings_df,results_df,tie_breakers,fpi_winners):
     # Example: division_winners(standings_df, results_df)
     # Things to fix: Seeding division winners (1–4) should use wild card tiebreakers when teams tie on wins
     """
+    if mode == "default":
+        mode = "division"
+        mode2 = "wildcard"
+    else:
+        mode2 = mode
     df = standings_df.copy()
     winners_rows = []
 
@@ -326,7 +345,7 @@ def division_winners(standings_df,results_df,tie_breakers,fpi_winners):
         else:
             team1 = tied[0] # Assign the first team as the "king of the hill"
             for team2 in tied[1:]: # for every team that has a tied record
-                team1, method, fpi = tie_break(results_df, df, team1, team2, mode="division") # break the tie between the "king" and the iterated team.
+                team1, method, fpi = tie_break(results_df, df, team1, team2, mode=mode) # break the tie between the "king" and the iterated team.
                 #whoever wins is the "new king".
                 tie_breakers.append(method)
                 fpi_winners.append(fpi)
@@ -335,7 +354,9 @@ def division_winners(standings_df,results_df,tie_breakers,fpi_winners):
         winners_rows.append(grp[grp["Team"] == winner].iloc[0].to_dict())
     winners_rows = pd.DataFrame(winners_rows)
     seeded_rows = []
-
+    #if mode == "division":
+    #    mode = "wildcard"
+    
     for conf, grp in winners_rows.groupby("Conference"): # does conferences seperately
         remaining = grp.copy() # makes a copy of our divison winners and creates the remaining pool
         winners = [] # empty array to fill
@@ -349,7 +370,7 @@ def division_winners(standings_df,results_df,tie_breakers,fpi_winners):
             else:
                 team1 = tied[0]
                 for team2 in tied[1:]:
-                    team1, method, fpi = tie_break(results_df, df, team1, team2, mode="wildcard")
+                    team1, method, fpi = tie_break(results_df, df, team1, team2, mode=mode2)
                     tie_breakers.append(method)
                     fpi_winners.append(fpi)
                 winner = team1
@@ -367,7 +388,7 @@ def division_winners(standings_df,results_df,tie_breakers,fpi_winners):
     return div_winners[["Conference", "Seed", "Team", "Division", "Wins", "Losses", "Ties"]].reset_index(drop=True), tie_breakers, fpi_winners
 
 # Name: wild_card
-def wild_card(standings_df, results_df, div,tie_breakers,fpi_winners):
+def wild_card(standings_df, results_df, div,tie_breakers,fpi_winners, mode = "default"):
     """
     # Input Variables: standings_df (dataframe), results_df (dataframe)
     # Output Variables: wildcards_df (dataframe)
@@ -382,7 +403,11 @@ def wild_card(standings_df, results_df, div,tie_breakers,fpi_winners):
     wc_pool = df[~df["Team"].isin(div["Team"])].copy()
 
     wildcard_rows = []
-
+    if mode == "default":
+        mode = "wildcard"
+        mode2 = "division"
+    else:
+        mode2 = mode
     # Do AFC / NFC seperate
     for conf, grp in wc_pool.groupby("Conference"):
 
@@ -402,12 +427,13 @@ def wild_card(standings_df, results_df, div,tie_breakers,fpi_winners):
                 team1 = tied[0] # Assign the first team as the "king of the hill"
                 for team2 in tied[1:]: # for every team that has a tied record
                     if df.loc[df["Team"] == team1, "Division"].iloc[0] != df.loc[df["Team"] == team2, "Division"].iloc[0]:
-                        team1, method, fpi = tie_break(results_df, df, team1, team2, mode="wildcard") # break the tie between the "king" and the iterated team.
+                        team1, method, fpi = tie_break(results_df, df, team1, team2, mode=mode) 
+                        # break the tie between the "king" and the iterated team.
                         tie_breakers.append(method)
                         fpi_winners.append(fpi)
                         #whoever wins is the "new king". What's nice about this is winners will be put in correct seeding order
                     else:
-                        team1, method, fpi = tie_break(results_df, df, team1, team2, mode="division")
+                        team1, method, fpi = tie_break(results_df, df, team1, team2, mode=mode2)
                         tie_breakers.append(method)
                         fpi_winners.append(fpi)
                 winner = team1
@@ -428,7 +454,7 @@ def wild_card(standings_df, results_df, div,tie_breakers,fpi_winners):
     return wildcards_df[["Conference", "Seed", "Team", "Division", "Wins", "Losses", "Ties"]].reset_index(drop=True), tie_breakers, fpi_winners
 
 # Name: playoff_field
-def playoff_field(standings_df,results_df):
+def playoff_field(standings_df,results_df, mode = "default"):
     """
     # Input Variables: standings_df (dataframe), results_df (dataframe)
     # Output Variables: field (dataframe)
@@ -437,8 +463,8 @@ def playoff_field(standings_df,results_df):
     """
     tie_breakers = []
     fpi_winners = []
-    div, tie_breakers, fpi_winners = division_winners(standings_df, results_df, tie_breakers, fpi_winners)
-    wc,  tie_breakers, fpi_winners = wild_card(standings_df, results_df, div, tie_breakers, fpi_winners)
+    div, tie_breakers, fpi_winners = division_winners(standings_df, results_df, tie_breakers, fpi_winners,mode)
+    wc,  tie_breakers, fpi_winners = wild_card(standings_df, results_df, div, tie_breakers, fpi_winners,mode)
 
     field = pd.concat([div, wc], ignore_index=True)
     field = field.sort_values(["Conference", "Seed"]).reset_index(drop=True)

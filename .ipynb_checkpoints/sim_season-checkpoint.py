@@ -107,5 +107,5 @@ def simulate_season(df, schedule_df, sigma=9, home_field=2, seed=1):
     standings_df["Conference"] = standings_df["Division"].str.split().str[0]
 
     standings_df["FPI vs True difference"] = (standings_df["FPI_Rank"] - standings_df["Final_Rank"])
-    standings_df.drop(columns=["Final_Rank", "FPI_Rank"], inplace=True)
+    standings_df.drop(columns=["Final_Rank"], inplace=True)
     return results_df, standings_df
