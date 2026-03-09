@@ -50,6 +50,7 @@ def simulate_season(df, schedule_df, sigma=9, home_field=2, seed=1):
     div_losses = {}
     conf_losses = {}
     total_margin = {}
+    games_played = {}
     
 
     # Start every team out with 0 wins
@@ -60,6 +61,7 @@ def simulate_season(df, schedule_df, sigma=9, home_field=2, seed=1):
         div_losses[team] = 0
         conf_losses[team] = 0
         total_margin[team] = 0
+        games_played[team] = 0
         
     # Count wins from results
     for _, r in results_df.iterrows():
@@ -68,6 +70,8 @@ def simulate_season(df, schedule_df, sigma=9, home_field=2, seed=1):
         winner = r["Winner"]
         loser = r["Loser"]
         wins[winner] += 1
+        games_played[home] += 1
+        games_played[away] += 1
     
         if r["Divisional"]:
             div_wins[winner] += 1
@@ -85,8 +89,8 @@ def simulate_season(df, schedule_df, sigma=9, home_field=2, seed=1):
     standings = []
 
     for team in teams:
-        standings.append({"Team": team,"Wins": wins[team], "Losses": n_games - wins[team], "FPI": power[team],"Div_Wins": div_wins[team],
-                         "Conf_Wins": conf_wins[team],"Division": division[team], "Total_Margin": total_margin[team], 
+        standings.append({"Team": team,"Wins": wins[team], "Losses": games_played[team] - wins[team], "FPI": power[team],"Div_Wins": 
+                          div_wins[team],"Conf_Wins": conf_wins[team],"Division": division[team], "Total_Margin": total_margin[team], 
                           "Div_Losses": div_losses[team],
                          "Conf_Losses": conf_losses[team],
                          })

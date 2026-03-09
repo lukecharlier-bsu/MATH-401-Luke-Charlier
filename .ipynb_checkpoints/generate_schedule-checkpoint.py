@@ -208,8 +208,128 @@ def division_vs_division(df, schedule, d1, d2,seed):
                 add_game(schedule, b, a, divisional=False, conference=conference)  # Team b is home vs team a
     return schedule
 
+def random_schedule(df: pd.DataFrame, season_length: int, seed: int = 1):
+
+    rng = np.random.default_rng(seed)
+
+    division_teams = df.groupby("Division")["Team"].apply(list).to_dict()
+    nfc_divs = [d for d in division_teams if d.split()[0] == "NFC"]
+    afc_divs = [d for d in division_teams if d.split()[0] == "AFC"]
+
+    schedule = []
+
+    # I'm making the minimum season length 6, as anything below that kinda breaks everything. Even 6 breaks basically everything
+    if season_length < 6:
+        print("Minimum schedule length is 6")
+        return None
+    # For seasons less than 16, I want to ensure 6 divisional games no matter what. These are crucial for deciding who wins their division
+    if season_length < 16:
+        schedule += build_divisional_schedule(division_teams)
+        full_cycles = 0
+        remainder = season_length - 6
+    else:
+        full_cycles = season_length // 17
+        remainder = season_length % 17
+    
+    remainder_cycles = remainder // 4
+    remainder_remainder = remainder % 4
+
+    # Instead of doing completely random schedules, as that becomes computationally very difficult with bigger numbers,
+    # I'm instead going to break this down into generating multiple 17 game seasons, and then filling in what's left over
+    
+    # 17 game blocks
+    for cycle in range(full_cycles):
+
+        cycle_seed = seed + cycle
+
+        # divisional schedule
+        schedule += build_divisional_schedule(division_teams)
+
+        # pair up divisions
+        nfc_pairs = pair_up(nfc_divs, cycle_seed)
+        afc_pairs = pair_up(afc_divs, cycle_seed)
+
+        # NFC division matchups
+        for d1, d2 in nfc_pairs:
+            division_vs_division(df, schedule, d1, d2, cycle_seed)
+
+        # AFC division matchups
+        for d1, d2 in afc_pairs:
+            division_vs_division(df, schedule, d1, d2, cycle_seed)
+
+        # cross conference
+        afc_shuf = afc_divs[:]
+        rng_cycle = np.random.default_rng(cycle_seed)
+        rng_cycle.shuffle(afc_shuf)
+
+        cross_pairs = list(zip(nfc_divs, afc_shuf))
+
+        for d1, d2 in cross_pairs:
+            division_vs_division(df, schedule, d1, d2, cycle_seed)
+
+        # +2 games
+        schedule = two_random_conference_games(df, schedule, nfc_pairs, seed=cycle_seed)
+        schedule = two_random_conference_games(df, schedule, afc_pairs, seed=cycle_seed)
+
+        # +1 game
+        schedule = one_random_other_conference(df, schedule, cross_pairs, seed=cycle_seed)
+
+    # Remainder 4 game blocks
+    for cycle in range(remainder_cycles):
+
+        cycle_seed = seed + full_cycles + cycle
+
+        if cycle % 2 == 0:
+
+            nfc_pairs = pair_up(nfc_divs, cycle_seed)
+            afc_pairs = pair_up(afc_divs, cycle_seed)
+
+            # NFC division matchups
+            for d1, d2 in nfc_pairs:
+                division_vs_division(df, schedule, d1, d2, cycle_seed)
+
+            # AFC division matchups
+            for d1, d2 in afc_pairs:
+                division_vs_division(df, schedule, d1, d2, cycle_seed)
+
+        else:
+
+            afc_shuf = afc_divs[:]
+            rng_cycle = np.random.default_rng(cycle_seed)
+            rng_cycle.shuffle(afc_shuf)
+            cross_pairs = list(zip(nfc_divs, afc_shuf))
+
+            for d1, d2 in cross_pairs:
+                division_vs_division(df, schedule, d1, d2, cycle_seed)
+
+    # Remainder Leftover
+    if remainder_remainder >= 2:
+
+        cycle_seed = seed + full_cycles + remainder_cycles
+        nfc_pairs = pair_up(nfc_divs, cycle_seed)
+        afc_pairs = pair_up(afc_divs, cycle_seed)
+
+        schedule = two_random_conference_games(df, schedule, nfc_pairs, seed=cycle_seed)
+        schedule = two_random_conference_games(df, schedule, afc_pairs, seed=cycle_seed)
+
+        remainder_remainder -= 2
+
+    if remainder_remainder == 1:
+
+        cycle_seed = seed + full_cycles + remainder_cycles
+        afc_shuf = afc_divs[:]
+        rng_cycle = np.random.default_rng(cycle_seed)
+        rng_cycle.shuffle(afc_shuf)
+        cross_pairs = list(zip(nfc_divs, afc_shuf))
+
+        schedule = one_random_other_conference(df, schedule, cross_pairs, seed=cycle_seed)
+
+    schedule_df = pd.DataFrame(schedule, columns=["Home", "Away", "Divisional", "Conference"])
+
+    return schedule_df
+
 # Name: generate_schedule
-def generate_schedule(df: pd.DataFrame, seed: int = 1):
+def generate_schedule(df: pd.DataFrame, seed: int = 1, season_length=17):
     """
     # Input Variables: df (dataframe of NFL teams), seed (int)
     # Output Variables: schedule_df (data frame with home team, away team, divisional flag, conference flag)
@@ -217,6 +337,8 @@ def generate_schedule(df: pd.DataFrame, seed: int = 1):
     # Example: #schedule_df = generate_schedule(df, seed=4)
     #print(schedule_df[(schedule_df["Home"] == "New England Patriots") | (schedule_df["Away"] == "New England Patriots")])
     """
+    if season_length != 17 and season_length != 16:
+        return random_schedule(df, season_length=season_length, seed=seed)
 
     rng = np.random.default_rng(seed)
     
@@ -250,7 +372,8 @@ def generate_schedule(df: pd.DataFrame, seed: int = 1):
 
     schedule = two_random_conference_games(df, schedule, nfc_pairs, seed=seed + 100)
     schedule = two_random_conference_games(df, schedule, afc_pairs, seed=seed + 200)
-    schedule = one_random_other_conference(df, schedule, cross_pairs, seed=seed + 999)
+    if season_length == 17:
+        schedule = one_random_other_conference(df, schedule, cross_pairs, seed=seed + 999)
 
     # converts schedule into a data frame
     schedule_df = pd.DataFrame(schedule, columns=["Home", "Away", "Divisional","Conference"])

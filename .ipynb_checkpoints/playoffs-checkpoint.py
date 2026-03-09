@@ -114,7 +114,7 @@ def common_games(results_df, t1, t2):
     
     # NFL rule: must have at least 4 common opponents
     if len(common) < 4:
-        print("Not enough opponents!", common)
+        #print("Not enough opponents!", common)
         return None
         
     # Take note the # of games played against these opponents for t1
@@ -207,9 +207,10 @@ def tie_break(results_df, standings_df, t1, t2, mode="division"):
     """
     if mode != "wildcard":
         if mode != "division":
-            if mode != "custom":
-                print("Must input 'wildcard' or 'division' for mode.")
-                return None
+            if mode != "total_margin":
+                if mode != "luke_formula":
+                    print("Must input 'wildcard' or 'division' for mode.")
+                    return None
 
     fpi_1 = standings_df.loc[standings_df["Team"] == t1, "FPI"].iloc[0]
     fpi_2 = standings_df.loc[standings_df["Team"] == t2, "FPI"].iloc[0]
@@ -230,7 +231,7 @@ def tie_break(results_df, standings_df, t1, t2, mode="division"):
     # 1) head-to-head
     w = head_to_head(results_df, t1, t2)
     if w is not None:
-        if mode != "custom":
+        if mode == "division" or mode == "wildcard":
             #print(w, "won a tiebreaker by head to head") #I added all these print statements to see what tie break method is going through
             return w, "head to head", fpi_result(w,higher_fpi)
 
@@ -303,7 +304,7 @@ def tie_break(results_df, standings_df, t1, t2, mode="division"):
             #print(t2, "won a tiebreaker by strength of schedule")
             return t2, "strength_of_schedule", fpi_result(t2,higher_fpi)
     
-    if mode == "custom":
+    if mode == "total_margin":
         
         tm1 = standings_df.loc[standings_df["Team"] == t1, "Total_Margin"].iloc[0]
         tm2 = standings_df.loc[standings_df["Team"] == t2, "Total_Margin"].iloc[0]
@@ -312,6 +313,43 @@ def tie_break(results_df, standings_df, t1, t2, mode="division"):
             return t1, "total_margin", fpi_result(t1, higher_fpi)
         elif tm2 > tm1:
             return t2, "total_margin", fpi_result(t2, higher_fpi)
+            
+    if mode == "luke_formula":
+        
+        tm1 = standings_df.loc[standings_df["Team"] == t1, "Total_Margin"].iloc[0]
+        tm2 = standings_df.loc[standings_df["Team"] == t2, "Total_Margin"].iloc[0]
+    
+        sos1 = strength_of_schedule(results_df, standings_df, t1)
+        sos2 = strength_of_schedule(results_df, standings_df, t2)
+    
+        # Getting mean and SD for both metrics to standardize
+        sos_values = [
+            strength_of_schedule(results_df, standings_df, team)
+            for team in standings_df["Team"]
+        ]
+    
+        tm_mean = standings_df["Total_Margin"].mean()
+        tm_std  = standings_df["Total_Margin"].std()
+    
+        sos_mean = sum(sos_values) / len(sos_values)
+        sos_std  = np.std(sos_values)
+    
+        # Normalizing
+        tm1_z = (tm1 - tm_mean) / tm_std
+        tm2_z = (tm2 - tm_mean) / tm_std
+    
+        sos1_z = (sos1 - sos_mean) / sos_std
+        sos2_z = (sos2 - sos_mean) / sos_std
+    
+        # New Metric
+        metric1 = 0.8 * tm1_z + 0.2 * sos1_z
+        metric2 = 0.8 * tm2_z + 0.2 * sos2_z
+    
+        if metric1 > metric2:
+            return t1, "luke_formula", fpi_result(t1, higher_fpi)
+    
+        elif metric2 > metric1:
+            return t2, "luke_formula", fpi_result(t2, higher_fpi)
 
             
     rng = np.random.default_rng()
