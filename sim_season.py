@@ -3,7 +3,7 @@ import pandas as pd
 from sim_game import simulate_game
 
 
-def simulate_season(df, schedule_df, sigma=9, home_field=2, seed=1):
+def simulate_season(df, schedule_df, sigma=9, home_field=2, seed=1, tm_cap = 100):
     """
     # Name: simulate_season
     # Input Variables: df (dataframe), schedule_df (dataframe), sigma (int), home_field (int), seed (int)
@@ -50,6 +50,7 @@ def simulate_season(df, schedule_df, sigma=9, home_field=2, seed=1):
     div_losses = {}
     conf_losses = {}
     total_margin = {}
+    capped_margin = {}
     games_played = {}
     
 
@@ -61,6 +62,7 @@ def simulate_season(df, schedule_df, sigma=9, home_field=2, seed=1):
         div_losses[team] = 0
         conf_losses[team] = 0
         total_margin[team] = 0
+        capped_margin[team] = 0
         games_played[team] = 0
         
     # Count wins from results
@@ -83,6 +85,13 @@ def simulate_season(df, schedule_df, sigma=9, home_field=2, seed=1):
 
         total_margin[home] += r["Margin"] #add margin to home teams total
         total_margin[away] -= r["Margin"] #subtract margin from away teams total
+        if r["Margin"] > 0:
+            cap = min(r["Margin"], tm_cap)
+        else:
+            cap = max(r["Margin"], -tm_cap)
+        
+        capped_margin[home] += cap
+        capped_margin[away] -= cap
         #let's say home team loses by 5, then away team's margin will be - -5, which would add 5 to it.
     
     # Standings ---------------------------------------------
@@ -91,8 +100,7 @@ def simulate_season(df, schedule_df, sigma=9, home_field=2, seed=1):
     for team in teams:
         standings.append({"Team": team,"Wins": wins[team], "Losses": games_played[team] - wins[team], "FPI": power[team],"Div_Wins": 
                           div_wins[team],"Conf_Wins": conf_wins[team],"Division": division[team], "Total_Margin": total_margin[team], 
-                          "Div_Losses": div_losses[team],
-                         "Conf_Losses": conf_losses[team],
+                          "Capped_Margin": capped_margin[team], "Div_Losses": div_losses[team],"Conf_Losses": conf_losses[team],
                          })
 
     standings_df = pd.DataFrame(standings)

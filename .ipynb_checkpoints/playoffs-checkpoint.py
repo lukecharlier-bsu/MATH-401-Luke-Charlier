@@ -4,10 +4,10 @@ import numpy as np
 
 def nfl_win_pct(standings_df, t1, mode="normal"):
     """
-    # Input Variables: standings_df (dataframe), t1 (string, ie Football team), mode (string: normal, conference, division, common)
-    # Output Variables: win percentage (float)
-    # Purpose: Calculates a team’s win percentage under different tiebreaking contexts
-    # Example: nfl_win_pct(standings_df, "Packers", mode="conference")
+    Input Variables: standings_df (dataframe), t1 (string, ie Football team), mode (string: normal, conference, division)
+    Output Variables: win percentage (float)
+    Purpose: Calculates a team’s win percentage under different tiebreaking contexts
+    Example: nfl_win_pct(standings_df, "Packers", mode="conference")
     """
     row = standings_df.loc[standings_df["Team"] == t1].iloc[0]
 
@@ -37,10 +37,10 @@ def nfl_win_pct(standings_df, t1, mode="normal"):
 # Name: head_to_head
 def head_to_head(results_df,t1,t2):
     """
-    # Input Variables: results_df (dataframe), t1 (string, ie Football team), t2 (string, ie Football team)
-    # Output Variables: Will return the team that has the better record OR none if they've never played/have equal record
-    # Purpose: Looks at 2 teams and sees who has the better record against each other
-    # Example: head_to_head(results_df,"Green Bay Packers","New Orleans Saints")
+    Input Variables: results_df (dataframe), t1 (string, ie Football team), t2 (string, ie Football team)
+    Output Variables: Will return the team that has the better record OR none if they've never played/have equal record
+    Purpose: Looks at 2 teams and sees who has the better record against each other
+    Example: head_to_head(results_df,"Green Bay Packers","New Orleans Saints")
     """
     games = results_df[((results_df["Home"] == t1) & (results_df["Away"] == t2)) |((results_df["Home"] == t2) & (results_df["Away"] == t1))].copy()
     # Above makes a copy of every matchup between the 2 teams
@@ -62,10 +62,10 @@ def head_to_head(results_df,t1,t2):
 # Name: division_record
 def division_record(standings_df,t1,t2):
     """
-    # Input Variables: standings_df (dataframe), t1 (string, ie Football team), t2 (string, ie Football team)
-    # Output Variables: team name (string) or None
-    # Purpose: Breaks ties using divisional wins
-    # Example: division_record(standings_df, "Packers", "Lions")
+    Input Variables: standings_df (dataframe), t1 (string, ie Football team), t2 (string, ie Football team)
+    Output Variables: team name (string) or None
+    Purpose: Breaks ties using divisional wins
+    Example: division_record(standings_df, "Packers", "Lions")
     """
     #w1 = int(standings_df.loc[standings_df["Team"] == t1, "Div_Wins"].iloc[0])
     #w2 = int(standings_df.loc[standings_df["Team"] == t2, "Div_Wins"].iloc[0])
@@ -80,10 +80,10 @@ def division_record(standings_df,t1,t2):
 # Name: conference_record
 def conference_record(standings_df,t1,t2):
     """
-    # Input Variables: standings_df (dataframe), t1 (string), t2 (string)
-    # Output Variables: team name (string) or None
-    # Purpose: Breaks ties using conference wins
-    # Example: conference_record(standings_df, "Eagles", "Cowboys")
+    Input Variables: standings_df (dataframe), t1 (string), t2 (string)
+    Output Variables: team name (string) or None
+    Purpose: Breaks ties using conference wins
+    Example: conference_record(standings_df, "Eagles", "Cowboys")
     """
     #w1 = int(standings_df.loc[standings_df["Team"] == t1, "Conf_Wins"].iloc[0])
     #w2 = int(standings_df.loc[standings_df["Team"] == t2, "Conf_Wins"].iloc[0])
@@ -99,10 +99,10 @@ def conference_record(standings_df,t1,t2):
 # Name: common_games
 def common_games(results_df, t1, t2):
     """
-    # Input Variables: results_df (dataframe), t1 (string), t2 (string)
-    # Output Variables: team name (string) or None
-    # Purpose: Breaks ties using wins against common opponents
-    # Example: common_games(results_df, "49ers", "Seahawks")
+    Input Variables: results_df (dataframe), t1 (string), t2 (string)
+    Output Variables: team name (string) or None
+    Purpose: Breaks ties using wins against common opponents
+    Example: common_games(results_df, "49ers", "Seahawks")
     """
     # Opponents each team played
     # set() function allows us to get a clean intersection
@@ -141,10 +141,10 @@ def common_games(results_df, t1, t2):
 
 def strength_of_victory(results_df, standings_df, team):
     """
-    # Input Variables: results_df (dataframe), standings_df (dataframe), team (string)
-    # Output Variables: mean of wins between teams they beat (integer)
-    # Purpose: Breaks ties using mean wins of beaten teams
-    # Example: strength_of_victory(results_df, standings_df, "Green Bay Packers")
+    Input Variables: results_df (dataframe), standings_df (dataframe), team (string)
+    Output Variables: mean of wins between teams they beat (integer)
+    Purpose: Breaks ties using mean wins of beaten teams
+    Example: strength_of_victory(results_df, standings_df, "Green Bay Packers")
     """
     beaten = results_df.loc[results_df["Winner"] == team, "Loser"].tolist() # List of teams the selected team beat
 
@@ -157,10 +157,10 @@ def strength_of_victory(results_df, standings_df, team):
 
 def strength_of_schedule(results_df, standings_df, team):
     """
-    # Input Variables: results_df (dataframe), standings_df (dataframe), team (string)
-    # Output Variables: mean of wins between opponents (integer)
-    # Purpose: Breaks ties using mean wins of opponents
-    # Example: strength_of_schedule(results_df, standings_df, "Green Bay Packers")
+    Input Variables: results_df (dataframe), standings_df (dataframe), team (string)
+    Output Variables: mean of wins between opponents (integer)
+    Purpose: Breaks ties using mean wins of opponents
+    Example: strength_of_schedule(results_df, standings_df, "Green Bay Packers")
     """
     opponents_home = results_df.loc[results_df["Home"] == team, "Away"].tolist()
 
@@ -191,34 +191,37 @@ def strength_of_schedule(results_df, standings_df, team):
 #what is it? total TDs for vs total TDs against in all games
 
 def fpi_result(winner, higher_fpi):
+    """
+    Input Variables: winner (str), higher_fpi (str or None):
+    Output Variables: result (str)
+    Purpose: Just allows us to do a quick check if the "higher FPI" team won a tiebreaker
+    Example: fpi_result("Jets", "Bills") -> "lower FPI won"
+    """
     if higher_fpi is None:
         return "FPI tied"
     if winner == higher_fpi:
         return "higher FPI won"
     return "lower FPI won"
-#def 
-# Name: tie_break
+
 def tie_break(results_df, standings_df, t1, t2, mode="division"):
     """
-    # Input Variables: results_df (dataframe), standings_df (dataframe), t1 (string), t2 (string), mode (string)
-    # Output Variables: winning team name (string)
-    # Purpose: Applies NFL-style tiebreakers to determine which team ranks higher, with 2 different modes for the type of tiebreaker
-    # Example: tie_break(results_df, standings_df, "Ravens", "Bengals", mode="wildcard")
+    Input Variables: results_df (dataframe), standings_df (dataframe), t1 (string), t2 (string), mode (string)
+    Output Variables: winning team name (string)
+    Purpose: Applies NFL-style tiebreakers to determine which team ranks higher, with 2 different modes for the type of tiebreaker
+    Example: tie_break(results_df, standings_df, "Ravens", "Bengals", mode="wildcard"), there is also functionalty for total_margin
+    # and capped_margin for tiebreakers
     """
-    if mode != "wildcard":
-        if mode != "division":
-            if mode != "total_margin":
-                if mode != "luke_formula":
-                    print("Must input 'wildcard' or 'division' for mode.")
-                    return None
+    valid_modes = {"division", "wildcard", "total_margin", "capped_margin"}
+    if mode not in valid_modes:
+        raise ValueError("mode must be one of ...")
 
     fpi_1 = standings_df.loc[standings_df["Team"] == t1, "FPI"].iloc[0]
     fpi_2 = standings_df.loc[standings_df["Team"] == t2, "FPI"].iloc[0]
+
     if fpi_1 > fpi_2:
         higher_fpi = t1
     else:
         higher_fpi = t2
-    #print("TIEBREAKER CALLED")
 
     w1 = nfl_win_pct(standings_df,t1)
     w2 = nfl_win_pct(standings_df,t2)
@@ -303,7 +306,9 @@ def tie_break(results_df, standings_df, t1, t2, mode="division"):
         elif w2 > w1:
             #print(t2, "won a tiebreaker by strength of schedule")
             return t2, "strength_of_schedule", fpi_result(t2,higher_fpi)
-    
+
+    # Total Margin
+    # just looks at the point differential for each team
     if mode == "total_margin":
         
         tm1 = standings_df.loc[standings_df["Team"] == t1, "Total_Margin"].iloc[0]
@@ -313,58 +318,31 @@ def tie_break(results_df, standings_df, t1, t2, mode="division"):
             return t1, "total_margin", fpi_result(t1, higher_fpi)
         elif tm2 > tm1:
             return t2, "total_margin", fpi_result(t2, higher_fpi)
-            
-    if mode == "luke_formula":
-        
-        tm1 = standings_df.loc[standings_df["Team"] == t1, "Total_Margin"].iloc[0]
-        tm2 = standings_df.loc[standings_df["Team"] == t2, "Total_Margin"].iloc[0]
-    
-        sos1 = strength_of_schedule(results_df, standings_df, t1)
-        sos2 = strength_of_schedule(results_df, standings_df, t2)
-    
-        # Getting mean and SD for both metrics to standardize
-        sos_values = [
-            strength_of_schedule(results_df, standings_df, team)
-            for team in standings_df["Team"]
-        ]
-    
-        tm_mean = standings_df["Total_Margin"].mean()
-        tm_std  = standings_df["Total_Margin"].std()
-    
-        sos_mean = sum(sos_values) / len(sos_values)
-        sos_std  = np.std(sos_values)
-    
-        # Normalizing
-        tm1_z = (tm1 - tm_mean) / tm_std
-        tm2_z = (tm2 - tm_mean) / tm_std
-    
-        sos1_z = (sos1 - sos_mean) / sos_std
-        sos2_z = (sos2 - sos_mean) / sos_std
-    
-        # New Metric
-        metric1 = 0.8 * tm1_z + 0.2 * sos1_z
-        metric2 = 0.8 * tm2_z + 0.2 * sos2_z
-    
-        if metric1 > metric2:
-            return t1, "luke_formula", fpi_result(t1, higher_fpi)
-    
-        elif metric2 > metric1:
-            return t2, "luke_formula", fpi_result(t2, higher_fpi)
 
-            
+    # Capped Margin
+    # looks at the point differential for each team, but each and every game has a "cap", so a blowout doesn't skew the results
+    if mode == "capped_margin":
+        
+        tm1 = standings_df.loc[standings_df["Team"] == t1, "Capped_Margin"].iloc[0]
+        tm2 = standings_df.loc[standings_df["Team"] == t2, "Capped_Margin"].iloc[0]
+    
+        if tm1 > tm2:
+            return t1, "capped_margin", fpi_result(t1, higher_fpi)
+        elif tm2 > tm1:
+            return t2, "capped_margin", fpi_result(t2, higher_fpi)
+                      
     rng = np.random.default_rng()
-    print("Coin flip! _________-----------_____________------------_______________--------", [t1, t2])
+    print("Coin flip! Betwee", [t1, t2])
     winner = rng.choice([t1, t2])
     return winner, "Coin Flip!", fpi_result(winner, higher_fpi)
 
 # Name: division_winners
 def division_winners(standings_df,results_df,tie_breakers,fpi_winners,mode = "default"):
     """
-    # Input Variables: standings_df (dataframe), results_df (dataframe)
-    # Output Variables: div_winners (dataframe) 
-    # Purpose: Determines the winner of each division using wins and division tiebreakers, then assigns seeds 1–4 within each conference
-    # Example: division_winners(standings_df, results_df)
-    # Things to fix: Seeding division winners (1–4) should use wild card tiebreakers when teams tie on wins
+    Input Variables: standings_df (dataframe), results_df (dataframe)
+    Output Variables: div_winners (dataframe) 
+    Purpose: Determines the winner of each division using wins and division tiebreakers, then assigns seeds 1–4 within each conference
+    Example: division_winners(standings_df, results_df)
     """
     if mode == "default":
         mode = "division"
@@ -428,11 +406,10 @@ def division_winners(standings_df,results_df,tie_breakers,fpi_winners,mode = "de
 # Name: wild_card
 def wild_card(standings_df, results_df, div,tie_breakers,fpi_winners, mode = "default"):
     """
-    # Input Variables: standings_df (dataframe), results_df (dataframe)
-    # Output Variables: wildcards_df (dataframe)
-    # Purpose: Selects the three Wild Card teams per conference using wins and Wild Card tiebreakers, then assigns seeds 5–7 within each conference
-    # Example: wild_card(standings_df, results_df)
-    # Things to fix: Division tiebreakers are actually used for brekaing a tie between 2 wildcard teams of the same division, so put an if-then for that
+    Input Variables: standings_df (dataframe), results_df (dataframe)
+    Output Variables: wildcards_df (dataframe)
+    Purpose: Selects the three Wild Card teams per conference using wins and Wild Card tiebreakers, then assigns seeds 5–7 within each conference
+    Example: wild_card(standings_df, results_df)
     """
     df = standings_df.copy()
 
@@ -494,10 +471,10 @@ def wild_card(standings_df, results_df, div,tie_breakers,fpi_winners, mode = "de
 # Name: playoff_field
 def playoff_field(standings_df,results_df, mode = "default"):
     """
-    # Input Variables: standings_df (dataframe), results_df (dataframe)
-    # Output Variables: field (dataframe)
-    # Purpose: Combines division winners and wild card teams into a complete playoff field
-    # Example: playoff_field(standings_df, results_df)
+    Input Variables: standings_df (dataframe), results_df (dataframe)
+    Output Variables: field (dataframe)
+    Purpose: Combines division winners and wild card teams into a complete playoff field
+    Example: playoff_field(standings_df, results_df)
     """
     tie_breakers = []
     fpi_winners = []
