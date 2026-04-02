@@ -4,7 +4,7 @@ from collections import Counter
 from playoffs import playoff_field
 from random_fpi import make_random_fpi
 
-def build_real_season_dfs(year: int):
+def build_real_season_dfs(year: int, tm_cap=100):
     """
     # Input Variables: year (int, NFL season year)
     # Output Variables: results_df (dataframe), standings_df (dataframe)
@@ -37,7 +37,8 @@ def build_real_season_dfs(year: int):
     home_score = sch["home_score"]
     away_score = sch["away_score"]
     margin_home = home_score - away_score
-
+    capped_margin_home = margin_home.clip(lower=-tm_cap, upper=tm_cap)
+    
     # Create an empty pandas series to store each game's winner and loser
     winner = pd.Series([None] * len(sch), index=sch.index)
     loser  = pd.Series([None] * len(sch), index=sch.index)
@@ -100,6 +101,15 @@ def build_real_season_dfs(year: int):
     # merge them together
     total_margin = home_margin.add(away_margin, fill_value=0)
     standings["Total_Margin"] = standings["Team"].map(total_margin).fillna(0).astype(int)
+
+    capped_home_margin = (results_df["Home_Score"] - results_df["Away_Score"]).clip(lower=-tm_cap, upper=tm_cap)  #ADD
+    capped_away_margin = (results_df["Away_Score"] - results_df["Home_Score"]).clip(lower=-tm_cap, upper=tm_cap)  #ADD
+    
+    home_capped = capped_home_margin.groupby(results_df["Home"]).sum()  #ADD
+    away_capped = capped_away_margin.groupby(results_df["Away"]).sum()  #ADD
+
+    capped_total = home_capped.add(away_capped, fill_value=0)  #ADD
+    standings["Capped_Margin"] = standings["Team"].map(capped_total).fillna(0).astype(int)
    
     # remove teams with no wins/losses (ie, Oakland Raiders)
     standings = standings[~((standings["Wins"] == 0) & (standings["Losses"] == 0))]

@@ -318,6 +318,18 @@ def tie_break(results_df, standings_df, t1, t2, mode="division"):
             return t1, "total_margin", fpi_result(t1, higher_fpi)
         elif tm2 > tm1:
             return t2, "total_margin", fpi_result(t2, higher_fpi)
+        
+        w1 = strength_of_victory(results_df, standings_df, t1)
+        w2 = strength_of_victory(results_df, standings_df, t2)
+        
+        if w1 > w2:
+            #print(t1, "won a tiebreaker by strength of victory")
+            return t1, "strength_of_victory", fpi_result(t1,higher_fpi)
+        elif w2 > w1:
+            #print(t2, "won a tiebreaker by strength of victory")
+            return t2, "strength_of_victory", fpi_result(t2,higher_fpi)
+
+        
 
     # Capped Margin
     # looks at the point differential for each team, but each and every game has a "cap", so a blowout doesn't skew the results
@@ -330,9 +342,19 @@ def tie_break(results_df, standings_df, t1, t2, mode="division"):
             return t1, "capped_margin", fpi_result(t1, higher_fpi)
         elif tm2 > tm1:
             return t2, "capped_margin", fpi_result(t2, higher_fpi)
+            
+        w1 = strength_of_victory(results_df, standings_df, t1)
+        w2 = strength_of_victory(results_df, standings_df, t2)
+        
+        if w1 > w2:
+            #print(t1, "won a tiebreaker by strength of victory")
+            return t1, "strength_of_victory", fpi_result(t1,higher_fpi)
+        elif w2 > w1:
+            #print(t2, "won a tiebreaker by strength of victory")
+            return t2, "strength_of_victory", fpi_result(t2,higher_fpi)
                       
     rng = np.random.default_rng()
-    print("Coin flip! Betwee", [t1, t2])
+    print("Coin flip! Between", [t1, t2])
     winner = rng.choice([t1, t2])
     return winner, "Coin Flip!", fpi_result(winner, higher_fpi)
 
