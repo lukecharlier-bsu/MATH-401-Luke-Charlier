@@ -49,7 +49,7 @@ def build_real_season_dfs(year: int, tm_cap=100):
     away_win = margin_home < 0
     both_tie = margin_home == 0
 
-    # Attach winners and losers based on the boolean function into the winner and lsoer series
+    # Attach winners and losers based on the boolean function into the winner and loser series
     winner[home_win] = sch.loc[home_win, "Home"]
     loser[home_win]  = sch.loc[home_win, "Away"]  
     winner[away_win] = sch.loc[away_win, "Away"]
@@ -79,7 +79,7 @@ def build_real_season_dfs(year: int, tm_cap=100):
     conf_wins = results_df.loc[results_df["Conference"], "Winner"].value_counts()
     div_losses = results_df.loc[results_df["Divisional"], "Loser"].value_counts()
     conf_losses = results_df.loc[results_df["Conference"], "Loser"].value_counts()    
-    div_ties = results_df.loc[results_df["Conference"], "Tie"].value_counts()
+    div_ties = results_df.loc[results_df["Divisional"], "Tie"].value_counts()
     conf_ties = results_df.loc[results_df["Conference"], "Tie"].value_counts()
     # map teams divisional and conference wins
     standings["Div_Wins"] = standings["Team"].map(div_wins).fillna(0).astype(int)
@@ -102,13 +102,13 @@ def build_real_season_dfs(year: int, tm_cap=100):
     total_margin = home_margin.add(away_margin, fill_value=0)
     standings["Total_Margin"] = standings["Team"].map(total_margin).fillna(0).astype(int)
 
-    capped_home_margin = (results_df["Home_Score"] - results_df["Away_Score"]).clip(lower=-tm_cap, upper=tm_cap)  #ADD
-    capped_away_margin = (results_df["Away_Score"] - results_df["Home_Score"]).clip(lower=-tm_cap, upper=tm_cap)  #ADD
-    
-    home_capped = capped_home_margin.groupby(results_df["Home"]).sum()  #ADD
-    away_capped = capped_away_margin.groupby(results_df["Away"]).sum()  #ADD
+    capped_home_margin = (results_df["Home_Score"] - results_df["Away_Score"]).clip(lower=-tm_cap, upper=tm_cap)
+    capped_away_margin = (results_df["Away_Score"] - results_df["Home_Score"]).clip(lower=-tm_cap, upper=tm_cap)
 
-    capped_total = home_capped.add(away_capped, fill_value=0)  #ADD
+    home_capped = capped_home_margin.groupby(results_df["Home"]).sum()
+    away_capped = capped_away_margin.groupby(results_df["Away"]).sum()
+
+    capped_total = home_capped.add(away_capped, fill_value=0)
     standings["Capped_Margin"] = standings["Team"].map(capped_total).fillna(0).astype(int)
    
     # remove teams with no wins/losses (ie, Oakland Raiders)
@@ -120,7 +120,13 @@ def build_real_season_dfs(year: int, tm_cap=100):
     return results_df, standings_df
 
 def real_schedule_df(year:int):
-     # Load in the schedules
+    """
+    # Input Variables: year (int, NFL season year)
+    # Output Variables: schedule_df (dataframe with home team, away team, divisional flag, conference flag)
+    # Purpose: Loads real NFL schedule data for a given season and formats it to match the simulation schedule structure
+    # Example: real_schedule_df(2022)
+    """
+    # Load in the schedules
     sch = nfl.load_schedules([year]).to_pandas()
 
     # Keep all regular season games

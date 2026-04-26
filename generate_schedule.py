@@ -6,6 +6,7 @@ from itertools import combinations
 def add_game(schedule, home, away, divisional=False, conference = False):
     """
     # Input Variables: schedule (array), home team (string), away team (string), divisional (boolean), conference (boolean)
+    # Output Variables: None — appends directly to the schedule list in place
     # Purpose: Allows customization to appending the schedule. For instance, flagging games as divisional matchups
     # Example: add_game(schedule, a,b,divisional = True, conference = True)
     """
@@ -58,7 +59,6 @@ def two_random_conference_games(df, schedule, pairs, seed=1):
     rng = np.random.default_rng(seed)
 
     division_teams = df.groupby("Division")["Team"].apply(list).to_dict()
-    #print(division_teams)
     (A, B) = pairs[0] # The first pair that was selected
     (C, D) = pairs[1] # The second pair that was selected
 
@@ -181,8 +181,6 @@ def division_vs_division(df, schedule, d1, d2,seed):
     rng = np.random.default_rng(seed)  # Random number
 
     division_teams = df.groupby("Division")["Team"].apply(list).to_dict()
-    nfc_divs = [d for d in division_teams if d.split()[0] == "NFC"]
-    afc_divs = [d for d in division_teams if d.split()[0] == "AFC"]
 
     A = division_teams[d1]  # Division 1
     B = division_teams[d2] # Division 2
@@ -209,7 +207,12 @@ def division_vs_division(df, schedule, d1, d2,seed):
     return schedule
 
 def random_schedule(df: pd.DataFrame, season_length: int, seed: int = 1):
-
+    """
+    # Input Variables: df (dataframe of NFL teams), season_length (int), seed (int)
+    # Output Variables: schedule_df (dataframe with home team, away team, divisional flag, conference flag)
+    # Purpose: Generates a schedule of arbitrary length by stacking 17-game blocks and filling in the remainder
+    # Example: random_schedule(df, season_length=100, seed=1)
+    """
     rng = np.random.default_rng(seed)
 
     division_teams = df.groupby("Division")["Team"].apply(list).to_dict()
@@ -331,11 +334,10 @@ def random_schedule(df: pd.DataFrame, season_length: int, seed: int = 1):
 # Name: generate_schedule
 def generate_schedule(df: pd.DataFrame, seed: int = 1, season_length=17):
     """
-    # Input Variables: df (dataframe of NFL teams), seed (int)
+    # Input Variables: df (dataframe of NFL teams), seed (int), season_length (int: 16 or 17)
     # Output Variables: schedule_df (data frame with home team, away team, divisional flag, conference flag)
-    # Purpose: Generates an entire 17 game NFL season for all 32 NFL teams
-    # Example: #schedule_df = generate_schedule(df, seed=4)
-    #print(schedule_df[(schedule_df["Home"] == "New England Patriots") | (schedule_df["Away"] == "New England Patriots")])
+    # Purpose: Generates an entire 16 or 17 game NFL season for all 32 NFL teams (for other lengths, uses random_schedule)
+    # Example: schedule_df = generate_schedule(df, seed=4)
     """
     if season_length != 17 and season_length != 16:
         return random_schedule(df, season_length=season_length, seed=seed)
@@ -346,8 +348,6 @@ def generate_schedule(df: pd.DataFrame, seed: int = 1, season_length=17):
     nfc_divs = [d for d in division_teams if d.split()[0] == "NFC"]
     afc_divs = [d for d in division_teams if d.split()[0] == "AFC"]
 
-    schedule = build_divisional_schedule(division_teams)
-    
     # Divisional Schedule
     schedule = build_divisional_schedule(division_teams)
 

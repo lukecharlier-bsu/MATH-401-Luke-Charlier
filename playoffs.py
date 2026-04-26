@@ -51,11 +51,9 @@ def head_to_head(results_df,t1,t2):
     t1_wins = (games["Winner"] == t1).sum() #Add up the games where team 1 wins
     t2_wins = (games["Winner"] == t2).sum() #Add up the games where team 2 wins
 
-    if t1_wins > t2_wins: 
-        #print(games)
+    if t1_wins > t2_wins:
         return t1
     if t2_wins > t1_wins:
-        #print(games)
         return t2
     return None
 
@@ -67,8 +65,6 @@ def division_record(standings_df,t1,t2):
     Purpose: Breaks ties using divisional wins
     Example: division_record(standings_df, "Packers", "Lions")
     """
-    #w1 = int(standings_df.loc[standings_df["Team"] == t1, "Div_Wins"].iloc[0])
-    #w2 = int(standings_df.loc[standings_df["Team"] == t2, "Div_Wins"].iloc[0])
     w1 = nfl_win_pct(standings_df,t1,mode = "division")
     w2 = nfl_win_pct(standings_df,t2,mode = "division")
     if w1 > w2:
@@ -85,8 +81,6 @@ def conference_record(standings_df,t1,t2):
     Purpose: Breaks ties using conference wins
     Example: conference_record(standings_df, "Eagles", "Cowboys")
     """
-    #w1 = int(standings_df.loc[standings_df["Team"] == t1, "Conf_Wins"].iloc[0])
-    #w2 = int(standings_df.loc[standings_df["Team"] == t2, "Conf_Wins"].iloc[0])
     w1 = nfl_win_pct(standings_df,t1,mode = "conference")
     w2 = nfl_win_pct(standings_df,t2,mode = "conference")
 
@@ -114,7 +108,6 @@ def common_games(results_df, t1, t2):
     
     # NFL rule: must have at least 4 common opponents
     if len(common) < 4:
-        #print("Not enough opponents!", common)
         return None
         
     # Take note the # of games played against these opponents for t1
@@ -174,21 +167,6 @@ def strength_of_schedule(results_df, standings_df, team):
     wins = standings_df.loc[standings_df["Team"].isin(opponents), "Wins"] #stores all the wins of the teams they played
 
     return wins.mean() # takes the mean of those teams
-    
-#def combined_ranking_conference
-#what is it? points for ranking + points against ranking amongst conference (1-16 for both)
-
-#def combined_ranking_overall
-#what is it? points for ranking + points against ranking amongst conference (1-32 for both)
-
-#def net_points_common
-#what is it? total points for vs total points against in common games
-
-#def net_points_overall
-#what is it? total points for vs total points against in all games
-
-#def net_tds
-#what is it? total TDs for vs total TDs against in all games
 
 def fpi_result(winner, higher_fpi):
     """
@@ -213,7 +191,7 @@ def tie_break(results_df, standings_df, t1, t2, mode="division"):
     """
     valid_modes = {"division", "wildcard", "total_margin", "capped_margin"}
     if mode not in valid_modes:
-        raise ValueError("mode must be one of ...")
+        raise ValueError("mode must be one of: 'division', 'wildcard', 'total_margin', 'capped_margin'")
 
     fpi_1 = standings_df.loc[standings_df["Team"] == t1, "FPI"].iloc[0]
     fpi_2 = standings_df.loc[standings_df["Team"] == t2, "FPI"].iloc[0]
@@ -235,7 +213,6 @@ def tie_break(results_df, standings_df, t1, t2, mode="division"):
     w = head_to_head(results_df, t1, t2)
     if w is not None:
         if mode == "division" or mode == "wildcard":
-            #print(w, "won a tiebreaker by head to head") #I added all these print statements to see what tie break method is going through
             return w, "head to head", fpi_result(w,higher_fpi)
 
     # 2) division record (division winner ties only)
@@ -243,36 +220,28 @@ def tie_break(results_df, standings_df, t1, t2, mode="division"):
     if mode == "division":
         w = division_record(standings_df, t1, t2)
         if w is not None:
-            #print(w, "won a tiebreaker by division_record")
             return w, "division_record", fpi_result(w,higher_fpi)
-            # 4) common games (later)
         w = common_games(results_df, t1, t2)
         if w is not None:
-            #print(w, "won a tiebreaker by common_games", t1,t2)
             return w, "common_games", fpi_result(w,higher_fpi)
         w = conference_record(standings_df, t1, t2)
         if w is not None:
-            #print(w, "won a tiebreaker by conference_record")
             return w, "conference_record", fpi_result(w,higher_fpi)
 
         w1 = strength_of_victory(results_df, standings_df, t1)
         w2 = strength_of_victory(results_df, standings_df, t2)
-        
+
         if w1 > w2:
-            #print(t1, "won a tiebreaker by strength of victory")
             return t1, "strength_of_victory", fpi_result(t1,higher_fpi)
         elif w2 > w1:
-            #print(t2, "won a tiebreaker by strength of victory")
             return t2, "strength_of_victory", fpi_result(t2,higher_fpi)
 
         w1 = strength_of_schedule(results_df, standings_df, t1)
         w2 = strength_of_schedule(results_df, standings_df, t2)
-        
+
         if w1 > w2:
-            #print(t1, "won a tiebreaker by strength of schedule")
             return t1, "strength_of_schedule", fpi_result(t1,higher_fpi)
         elif w2 > w1:
-            #print(t2, "won a tiebreaker by strength of schedule")
             return t2, "strength_of_schedule", fpi_result(t2,higher_fpi)
 
     # 3) wildcard    
@@ -280,31 +249,25 @@ def tie_break(results_df, standings_df, t1, t2, mode="division"):
     if mode == "wildcard":
         w = conference_record(standings_df, t1, t2)
         if w is not None:
-            #print(w, "won a tiebreaker by conference_record")
             return w, "conference_record", fpi_result(w,higher_fpi)
         w = common_games(results_df, t1, t2)
         if w is not None:
-            #print(w, "won a tiebreaker by common_games", t1,t2)
             return w, "common_games", fpi_result(w,higher_fpi)
-        
+
         w1 = strength_of_victory(results_df, standings_df, t1)
         w2 = strength_of_victory(results_df, standings_df, t2)
-        
+
         if w1 > w2:
-            #print(t1, "won a tiebreaker by strength of victory")
             return t1, "strength_of_victory", fpi_result(t1,higher_fpi)
         elif w2 > w1:
-            #print(t2, "won a tiebreaker by strength of victory")
             return t2, "strength_of_victory", fpi_result(t2,higher_fpi)
 
         w1 = strength_of_schedule(results_df, standings_df, t1)
         w2 = strength_of_schedule(results_df, standings_df, t2)
-        
+
         if w1 > w2:
-            #print(t1, "won a tiebreaker by strength of schedule")
             return t1, "strength_of_schedule", fpi_result(t1,higher_fpi)
         elif w2 > w1:
-            #print(t2, "won a tiebreaker by strength of schedule")
             return t2, "strength_of_schedule", fpi_result(t2,higher_fpi)
 
     # Total Margin
@@ -323,13 +286,9 @@ def tie_break(results_df, standings_df, t1, t2, mode="division"):
         w2 = strength_of_victory(results_df, standings_df, t2)
         
         if w1 > w2:
-            #print(t1, "won a tiebreaker by strength of victory")
             return t1, "strength_of_victory", fpi_result(t1,higher_fpi)
         elif w2 > w1:
-            #print(t2, "won a tiebreaker by strength of victory")
             return t2, "strength_of_victory", fpi_result(t2,higher_fpi)
-
-        
 
     # Capped Margin
     # looks at the point differential for each team, but each and every game has a "cap", so a blowout doesn't skew the results
@@ -347,12 +306,10 @@ def tie_break(results_df, standings_df, t1, t2, mode="division"):
         w2 = strength_of_victory(results_df, standings_df, t2)
         
         if w1 > w2:
-            #print(t1, "won a tiebreaker by strength of victory")
             return t1, "strength_of_victory", fpi_result(t1,higher_fpi)
         elif w2 > w1:
-            #print(t2, "won a tiebreaker by strength of victory")
             return t2, "strength_of_victory", fpi_result(t2,higher_fpi)
-                      
+
     rng = np.random.default_rng()
     print("Coin flip! Between", [t1, t2])
     winner = rng.choice([t1, t2])
@@ -392,9 +349,7 @@ def division_winners(standings_df,results_df,tie_breakers,fpi_winners,mode = "de
         winners_rows.append(grp[grp["Team"] == winner].iloc[0].to_dict())
     winners_rows = pd.DataFrame(winners_rows)
     seeded_rows = []
-    #if mode == "division":
-    #    mode = "wildcard"
-    
+
     for conf, grp in winners_rows.groupby("Conference"): # does conferences seperately
         remaining = grp.copy() # makes a copy of our divison winners and creates the remaining pool
         winners = [] # empty array to fill
@@ -436,7 +391,6 @@ def wild_card(standings_df, results_df, div,tie_breakers,fpi_winners, mode = "de
     df = standings_df.copy()
 
     # Remove division winners from wildcard pool
-    #div = division_winners(df, results_df)
     wc_pool = df[~df["Team"].isin(div["Team"])].copy()
 
     wildcard_rows = []
@@ -451,7 +405,6 @@ def wild_card(standings_df, results_df, div,tie_breakers,fpi_winners, mode = "de
         remaining = grp.copy() #This is basically our pool of contenders for a wildcard spot
         winners = [] #This is an empty arrray to store teams that make the playoffs
 
-        # P
         while len(winners) < 3:
 
             max_wins = remaining["Wins"].max() #Look at who has the most wins in our remaining group
@@ -464,11 +417,10 @@ def wild_card(standings_df, results_df, div,tie_breakers,fpi_winners, mode = "de
                 team1 = tied[0] # Assign the first team as the "king of the hill"
                 for team2 in tied[1:]: # for every team that has a tied record
                     if df.loc[df["Team"] == team1, "Division"].iloc[0] != df.loc[df["Team"] == team2, "Division"].iloc[0]:
-                        team1, method, fpi = tie_break(results_df, df, team1, team2, mode=mode) 
+                        team1, method, fpi = tie_break(results_df, df, team1, team2, mode=mode)
                         # break the tie between the "king" and the iterated team.
                         tie_breakers.append(method)
                         fpi_winners.append(fpi)
-                        #whoever wins is the "new king". What's nice about this is winners will be put in correct seeding order
                     else:
                         team1, method, fpi = tie_break(results_df, df, team1, team2, mode=mode2)
                         tie_breakers.append(method)

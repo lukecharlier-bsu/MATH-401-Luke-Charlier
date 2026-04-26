@@ -1,0 +1,26 @@
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Claude internal
+.claude/
+
+# Editor
+.vscode/
+
+# Secrets
+claude_api_key.txt
+
+# Large design/poster files
+*.psd
+senior project copy.pdf
+
+# Generated outputs (optional — delete lines to track them)
+*.png
+season_length_results.csv

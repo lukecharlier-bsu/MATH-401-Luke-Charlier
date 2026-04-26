@@ -3,16 +3,16 @@ import pandas as pd
 from sim_game import simulate_game
 
 
-def simulate_season(df, schedule_df, sigma=9, home_field=2, seed=1, tm_cap = 100):
+def simulate_season(df, schedule_df, sigma=9, home_field=2, seed=1, tm_cap=10):
     """
     # Name: simulate_season
-    # Input Variables: df (dataframe), schedule_df (dataframe), sigma (int), home_field (int), seed (int)
+    # Input Variables: df (dataframe), schedule_df (dataframe), sigma (int), home_field (int), seed (int), tm_cap (int)
     # Output Variables: results_df (dataframe containing the winner and loser of all games), standings_df (dataframe showing NFL standings)
-    # Purpose: Simulates an entire 17 game 32 team NFL season 
-    # Example: 
+    # Purpose: Simulates an entire 17 game 32 team NFL season
+    # Note: tm_cap=10 is the intended default for analysis (caps per-game margin at 10 pts to reduce blowout skew)
+    # Example: simulate_season(df_seeded, schedule_df, sigma=9, home_field=2, seed=1, tm_cap=10)
     """
     rng = np.random.default_rng(seed)
-    n_games = 17
 
     teams = df["Team"].tolist() # All 32 NFL teams
     power = dict(zip(df["Team"], df["FPI"])) # Pairs teams with their assigned rating
@@ -41,7 +41,7 @@ def simulate_season(df, schedule_df, sigma=9, home_field=2, seed=1, tm_cap = 100
         results.append({"Home": home,"Away": away,"Winner": winner,"Loser": loser, "Divisional": divisional, "Conference": conference, "Margin": margin,})
 
     results_df = pd.DataFrame(results)
-    results_df["Tie"] = margin == 0
+    results_df["Tie"] = results_df["Margin"] == 0
     
     # Count the wins ---------------------------------------
     wins = {}
@@ -105,7 +105,7 @@ def simulate_season(df, schedule_df, sigma=9, home_field=2, seed=1, tm_cap = 100
 
     standings_df = pd.DataFrame(standings)
     standings_df["Ties"] = 0
-    standings_df["Div Ties"] = 0
+    standings_df["Div_Ties"] = 0
     standings_df["Conf_Ties"] = 0
     # Sort standings by wins (descending) -------------------
     standings_df = standings_df.sort_values(by="Wins", ascending=False).reset_index(drop=True)
