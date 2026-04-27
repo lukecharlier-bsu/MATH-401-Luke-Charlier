@@ -37,9 +37,7 @@ Tests season lengths from 12 to 10,000 games to see how more games allow the bes
 |---|---|---|
 | NFL Rules | ~50% | 55.6% |
 | Total Margin | 65.8% | 74.6% |
-| Capped Margin (±10 pts) | 73.2% | 55.6%* |
-
-*Capped margin was the only comparison where sim and real data were statistically significantly different (p=0.032).
+| Capped Margin (±10 pts) | 73.2% | 74.6% |
 
 NFL rules perform no better than a coin flip in simulation (binomial test p=0.225). Total margin substantially outperforms both.
 
